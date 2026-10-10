@@ -1,5 +1,11 @@
 # WorkBuddy AI workspace data (internal, not part of the project)
 .workbuddy-ai/
+.workbuddy/
+.wbapp_*.genie
+
+# Staging directory used as the publish source for the live demo link.
+# Holds a copy of index.html only -- never part of the project itself.
+.publish/
 
 # macOS
 .DS_Store

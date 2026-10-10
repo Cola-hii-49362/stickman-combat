@@ -6,6 +6,8 @@ A zero-dependency HTML5 canvas brawler in a **single file**. Open `index.html` i
 
 Fight through endless levels. Every level the enemies get tougher: more health, better weapons, and more of them. Earn gold, buy weapons, stack upgrades, and see how deep you can go.
 
+**[Play it now in your browser](https://8c60a20189be4f5faf65e8046ca01cb1.sg2.agentos-app.run)** — nothing to install, works on desktop and mobile.
+
 ---
 
 ## Table of contents
@@ -26,6 +28,10 @@ Fight through endless levels. Every level the enemies get tougher: more health, 
 ---
 
 ## Play
+
+**Live demo — [play in your browser](https://8c60a20189be4f5faf65e8046ca01cb1.sg2.agentos-app.run)**, no download required. Works on desktop and mobile.
+
+Or run it locally:
 
 ```
 open index.html
