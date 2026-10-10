@@ -2,16 +2,34 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Stickman Combat</title>
+<meta name="description" content="A zero-dependency HTML5 stickman brawler. Six weapons, a between-level shop, and enemies that gain health, better weapons and numbers every level. Runs in the browser with no install.">
+<meta name="theme-color" content="#0b0b14">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Stickman Combat">
+<meta property="og:description" content="A zero-dependency HTML5 stickman brawler. Six weapons, a between-level shop, and enemies that gain health, better weapons and numbers every level.">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%2312121f'/><g stroke='%23e8f4ff' stroke-width='5' stroke-linecap='round' fill='none'><circle cx='30' cy='19' r='7'/><path d='M30 26v16M30 31l-11 8M30 31l12 4M30 42l-8 13M30 42l8 13'/></g><path d='M44 11l11 23' stroke='%23ff4d5e' stroke-width='6' stroke-linecap='round'/></svg>">
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{height:100%;background:#0b0b14;overflow:hidden;
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    color:#e8eaf2;-webkit-font-smoothing:antialiased}
-  #wrap{position:relative;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center}
-  #stage{position:relative;width:100%;max-width:1280px;aspect-ratio:16/9;max-height:100vh}
-  canvas{display:block;width:100%;height:100%;border-radius:10px;background:#12121f}
+    color:#e8eaf2;-webkit-font-smoothing:antialiased;
+    -webkit-text-size-adjust:100%;overscroll-behavior:none}
+  #wrap{position:relative;width:100vw;height:100vh;height:100dvh;
+    display:flex;align-items:center;justify-content:center;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+  #stage{position:relative;width:100%;aspect-ratio:16/9;
+    /* Cap the width by the available height as well. Otherwise on a short or
+       landscape viewport max-height clamps the box while width stays 100%, and
+       the canvas stretches out of its 16:9 ratio. */
+    max-width:min(1280px, calc(100vh * 16 / 9));
+    max-height:100vh;
+    max-width:min(1280px, calc(100dvh * 16 / 9));
+    max-height:100dvh;
+    touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+  canvas{display:block;width:100%;height:100%;border-radius:10px;background:#12121f;touch-action:none}
 
   /* ---------- HUD ---------- */
   #hud{position:absolute;inset:0;pointer-events:none;padding:14px 18px;
@@ -79,6 +97,44 @@
   .statline{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:#9aa0b5;margin:10px 0 2px}
   .statline b{color:#e8eaf2}
   .hint{font-size:12px;color:#7b81a0;margin-top:12px;line-height:1.6}
+
+  /* ---------- Touch controls (shown only on coarse pointers) ---------- */
+  #touch{position:absolute;inset:0;display:none;z-index:5;pointer-events:none}
+  body.touch.play #touch{display:block}
+  .tpad{position:absolute;bottom:16px;display:flex;gap:12px;align-items:flex-end}
+  .tpad.l{left:16px}
+  .tpad.r{right:16px;align-items:center}
+  .tbtn{pointer-events:auto;width:66px;height:66px;border-radius:50%;
+    background:rgba(255,255,255,.10);border:2px solid rgba(255,255,255,.28);
+    color:#e8eaf2;font-family:inherit;font-size:13px;font-weight:700;letter-spacing:.5px;
+    display:flex;align-items:center;justify-content:center;
+    -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+    touch-action:none;transition:background .08s,transform .08s}
+  .tbtn.act{background:rgba(139,233,253,.32);border-color:#8be9fd;transform:scale(.93)}
+  .tbtn.jmp{width:60px;height:60px}
+  .tbtn.atk{width:84px;height:84px;font-size:14px;
+    background:rgba(255,77,94,.22);border-color:rgba(255,77,94,.62)}
+  .tbtn.atk.act{background:rgba(255,77,94,.48);border-color:#ff6b78}
+  .tbtn.dash{width:56px;height:56px;font-size:11px}
+  @media (max-height:460px){
+    .tbtn{width:54px;height:54px}
+    .tbtn.atk{width:68px;height:68px}
+    .tbtn.jmp{width:50px;height:50px}
+    .tbtn.dash{width:46px;height:46px}
+    .tpad{bottom:10px}
+  }
+  /* Narrow screens: shrink the pad so both clusters fit side by side.
+     At full size the two pads total ~400px and overflow a 390px phone,
+     which clips the ATTACK button off the edge. */
+  @media (max-width:520px){
+    .tbtn{width:56px;height:56px;font-size:11px}
+    .tbtn.jmp{width:52px;height:52px}
+    .tbtn.atk{width:68px;height:68px;font-size:12px}
+    .tbtn.dash{width:48px;height:48px;font-size:10px}
+    .tpad{gap:9px;bottom:12px}
+    .tpad.l{left:10px}
+    .tpad.r{right:10px}
+  }
 </style>
 </head>
 <body>
@@ -100,7 +156,19 @@
   </div>
 
   <div id="overlay"></div>
-</div></div>
+</div>
+<div id="touch">
+  <div class="tpad l">
+    <div class="tbtn" id="tLeft">&#9664;</div>
+    <div class="tbtn" id="tRight">&#9654;</div>
+  </div>
+  <div class="tpad r">
+    <div class="tbtn dash" id="tDash">DASH</div>
+    <div class="tbtn jmp" id="tJump">JUMP</div>
+    <div class="tbtn atk" id="tAtk">ATTACK</div>
+  </div>
+</div>
+</div>
 
 <script>
 (function(){
@@ -126,14 +194,24 @@ function fitCanvas(){
 fitCanvas();
 window.addEventListener('resize', fitCanvas);
 
+/* Respect the OS "reduce motion" preference: no screen shake, no pulsing vignette. */
+const REDUCED = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
 /* ============================================================
    AUDIO  (synthesised - no asset files needed)
    ============================================================ */
 let AC = null, muted = false;
 function actx(){
   if (!AC) { const C = window.AudioContext || window.webkitAudioContext; if (C) AC = new C(); }
+  // Browsers suspend the context when the tab is backgrounded, and iOS suspends
+  // it on audio interruptions. Without an explicit resume the game stays silent
+  // for the rest of the session after either happens.
+  if (AC && AC.state === 'suspended'){ try { AC.resume(); } catch(e){} }
   return AC;
 }
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && AC && AC.state === 'suspended'){ try { AC.resume(); } catch(e){} }
+});
 function tone(freq, dur, type, vol, slideTo){
   if (muted) return;
   const a = actx(); if (!a) return;
@@ -225,12 +303,13 @@ function levelConfig(n){
 /* ============================================================
    GAME STATE
    ============================================================ */
-let state = 'menu';               // menu | playing | shop | gameover | win
+let state = 'menu';               // menu | playing | paused | shop | gameover
 let level = 1;
 let gold  = 0;
 let shakeAmt = 0;
 let timeAlive = 0;
 let levelBanner = 0;              // seconds remaining on the "LEVEL N" banner
+let levelFoes = 0;                // enemy count for this level, frozen for the banner
 let endDelay = 0;                 // delay before shop opens after clearing
 let totalKills = 0;
 
@@ -268,6 +347,7 @@ function wpnOf(e){ return e.isPlayer ? WEAPONS[e.weapons[e.wi]] : WEAPONS[e.weap
    ============================================================ */
 const keys = Object.create(null);
 const held = { left:false, right:false, jump:false, attack:false, dash:false };
+const touch = { left:false, right:false, jump:false, attack:false };
 let attackQueued = false;
 
 function keyName(e){ return e.key.length === 1 ? e.key.toLowerCase() : e.key; }
@@ -286,14 +366,45 @@ window.addEventListener('keydown', e => {
       syncHUD(); SFX.swing();
     }
   }
-  if (k === 'p' || k === 'Escape'){ if (state === 'playing') pauseGame(); }
+  if (k === 'p' || k === 'Escape') togglePause();
 }, { passive:false });
 
 window.addEventListener('keyup', e => { keys[keyName(e)] = false; });
-window.addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
+window.addEventListener('blur', () => {
+  for (const k in keys) keys[k] = false;
+  touch.left = touch.right = touch.jump = touch.attack = false;
+});
 
 cv.addEventListener('mousedown', e => { e.preventDefault(); if (state === 'playing') attackQueued = true; });
 cv.addEventListener('contextmenu', e => e.preventDefault());
+
+/* ---------- on-screen touch controls ---------- */
+/* Bound with pointer events so a finger sliding off a button still releases it. */
+function bindHold(id, set){
+  const b = document.getElementById(id);
+  const on  = e => { e.preventDefault(); set(true);  b.classList.add('act'); };
+  const off = e => { e.preventDefault(); set(false); b.classList.remove('act'); };
+  b.addEventListener('pointerdown', on);
+  b.addEventListener('pointerup', off);
+  b.addEventListener('pointercancel', off);
+  b.addEventListener('pointerleave', off);
+}
+bindHold('tLeft',  v => { touch.left  = v; });
+bindHold('tRight', v => { touch.right = v; });
+bindHold('tJump',  v => { touch.jump  = v; });
+bindHold('tAtk',   v => { touch.attack = v; if (v && state === 'playing') attackQueued = true; });
+document.getElementById('tDash').addEventListener('pointerdown', e => {
+  e.preventDefault();
+  if (state === 'playing') tryDash();
+  const b = e.currentTarget;
+  b.classList.add('act');
+  setTimeout(() => b.classList.remove('act'), 150);
+});
+
+/* Show the pad only on touch devices -- desktop keeps the clean canvas. */
+if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0){
+  document.body.classList.add('touch');
+}
 
 document.getElementById('muteBtn').addEventListener('click', () => {
   muted = !muted;
@@ -302,9 +413,9 @@ document.getElementById('muteBtn').addEventListener('click', () => {
 });
 
 function readHeld(){
-  held.left  = !!(keys['a'] || keys['ArrowLeft']);
-  held.right = !!(keys['d'] || keys['ArrowRight']);
-  held.jump  = !!(keys[' '] || keys['ArrowUp'] || keys['w']);
+  held.left  = !!(keys['a'] || keys['ArrowLeft']  || touch.left);
+  held.right = !!(keys['d'] || keys['ArrowRight'] || touch.right);
+  held.jump  = !!(keys[' '] || keys['ArrowUp'] || keys['w'] || touch.jump);
 }
 
 /* ============================================================
@@ -313,7 +424,7 @@ function readHeld(){
 const clamp = (v,a,b) => v < a ? a : (v > b ? b : v);
 const rand  = (a,b) => a + Math.random() * (b - a);
 const lerp  = (a,b,t) => a + (b - a) * t;
-function shake(v){ shakeAmt = Math.min(16, shakeAmt + v); }
+function shake(v){ if (REDUCED) return; shakeAmt = Math.min(16, shakeAmt + v); }
 
 function burst(x, y, color, n, power){
   for (let i = 0; i < n; i++){
@@ -381,6 +492,9 @@ function updatePlayer(dt){
   else p.walkPhase = lerp(p.walkPhase, Math.round(p.walkPhase / Math.PI) * Math.PI, 1 - Math.pow(0.002, dt));
 
   // --- attack ---
+  // Holding the touch ATTACK button re-queues each frame; the weapon's own
+  // cooldown is what limits the rate, so this cannot out-speed tapping.
+  if (touch.attack) attackQueued = true;
   if (attackQueued){
     attackQueued = false;
     if (p.atkCd <= 0 && p.hitstun <= 0){
@@ -443,6 +557,7 @@ function spawnLevel(n){
     const x = 985 + i * 78 + (type === 'boss' ? 120 : 0);
     enemies.push(makeEnemy(type, n, cfg, x));
   });
+  levelFoes = list.length;
   syncHUD();
 }
 
@@ -927,7 +1042,7 @@ function drawBanner(){
   ctx.fillText('LEVEL ' + level, W / 2 + 2, 176 + 2);
   ctx.fillStyle = '#ffffff';
   ctx.fillText('LEVEL ' + level, W / 2, 176);
-  const foes = enemies.filter(e => !e.dead).length;
+  const foes = levelFoes;
   ctx.font = '600 15px -apple-system, sans-serif';
   ctx.fillStyle = '#9aa0b5';
   ctx.fillText(foes + (foes === 1 ? ' enemy incoming' : ' enemies incoming'), W / 2, 204);
@@ -944,7 +1059,6 @@ function drawBanner(){
    MAIN LOOP
    ============================================================ */
 let last = performance.now();
-let bannerShown = false;
 
 function frame(now){
   let dt = (now - last) / 1000;
@@ -1002,7 +1116,7 @@ function frame(now){
 
   // low-health vignette
   if (state === 'playing' && player.hp / player.maxHp < 0.3){
-    const pulse = 0.16 + Math.sin(timeAlive * 7) * 0.07;
+    const pulse = REDUCED ? 0.18 : 0.16 + Math.sin(timeAlive * 7) * 0.07;
     const vg = ctx.createRadialGradient(W/2, H/2, 180, W/2, H/2, 620);
     vg.addColorStop(0, 'rgba(255,0,40,0)');
     vg.addColorStop(1, 'rgba(255,0,40,' + pulse.toFixed(3) + ')');
@@ -1025,18 +1139,40 @@ const el = {
   wpnTxt : document.getElementById('wpnTxt'),
   foeNum : document.getElementById('foeNum')
 };
+/* syncHUD is called every frame, so only touch the DOM when a value actually
+   changed -- re-assigning identical styles/text 60x a second forces needless
+   style recalculation for the whole HUD. */
+const hudCache = { w:'', bar:'', txt:'', lvl:null, gold:null, wpn:'', foes:null, play:null };
 function syncHUD(){
   const pct = clamp(player.hp / player.maxHp, 0, 1);
-  el.hpFill.style.width = (pct * 100) + '%';
-  el.hpFill.style.background = pct > 0.5 ? 'linear-gradient(90deg,#2ecc71,#8be9fd)'
-                              : pct > 0.25 ? 'linear-gradient(90deg,#ffb340,#ffd166)'
-                                           : 'linear-gradient(90deg,#ff2d55,#ff6b78)';
-  el.hpTxt.textContent = Math.max(0, Math.ceil(player.hp)) + ' / ' + player.maxHp;
-  el.lvlTxt.textContent = level;
-  el.goldTxt.textContent = gold;
-  el.wpnTxt.textContent = weapon().name;
+
+  const w = (Math.round(pct * 1000) / 10) + '%';
+  if (w !== hudCache.w){ hudCache.w = w; el.hpFill.style.width = w; }
+
+  const bar = pct > 0.5 ? 'linear-gradient(90deg,#2ecc71,#8be9fd)'
+            : pct > 0.25 ? 'linear-gradient(90deg,#ffb340,#ffd166)'
+                         : 'linear-gradient(90deg,#ff2d55,#ff6b78)';
+  if (bar !== hudCache.bar){ hudCache.bar = bar; el.hpFill.style.background = bar; }
+
+  const txt = Math.max(0, Math.ceil(player.hp)) + ' / ' + player.maxHp;
+  if (txt !== hudCache.txt){ hudCache.txt = txt; el.hpTxt.textContent = txt; }
+
+  if (level !== hudCache.lvl){ hudCache.lvl = level; el.lvlTxt.textContent = level; }
+  if (gold  !== hudCache.gold){ hudCache.gold = gold; el.goldTxt.textContent = gold; }
+
+  const wn = weapon().name;
+  if (wn !== hudCache.wpn){ hudCache.wpn = wn; el.wpnTxt.textContent = wn; }
+
   const foes = enemies.filter(e => !e.dead).length;
-  el.foeNum.textContent = foes;
+  if (foes !== hudCache.foes){ hudCache.foes = foes; el.foeNum.textContent = foes; }
+
+  // Reveal the touch pad only while a fight is actually in progress, so it
+  // never sits on top of the menu, shop or pause screens.
+  const playing = state === 'playing';
+  if (playing !== hudCache.play){
+    hudCache.play = playing;
+    document.body.classList.toggle('play', playing);
+  }
 }
 
 /* ============================================================
@@ -1047,11 +1183,15 @@ const overlay = document.getElementById('overlay');
 function showMenu(){
   state = 'menu';
   overlay.classList.add('show');
-  overlay.innerHTML =
-    '<div class="panel">' +
-      '<h1>STICKMAN <span>COMBAT</span></h1>' +
-      '<p class="sub">Fight through endless levels. Every level the enemies get tougher &mdash; more health, better weapons, and more of them. Earn gold, buy weapons, stack upgrades, and see how deep you can go.</p>' +
-      '<div class="keys">' +
+  // Touch devices get pad instructions instead of keyboard ones.
+  const keysHtml = document.body.classList.contains('touch')
+    ? '<div class="keys">' +
+        '<div class="key"><kbd>&#9664;</kbd><kbd>&#9654;</kbd> Move</div>' +
+        '<div class="key"><kbd>JUMP</kbd> Jump</div>' +
+        '<div class="key"><kbd>ATTACK</kbd> Attack</div>' +
+        '<div class="key"><kbd>DASH</kbd> Dash (i-frames)</div>' +
+      '</div>'
+    : '<div class="keys">' +
         '<div class="key"><kbd>A</kbd><kbd>D</kbd> Move</div>' +
         '<div class="key"><kbd>W</kbd> / <kbd>Space</kbd> Jump</div>' +
         '<div class="key"><kbd>J</kbd> / <kbd>Click</kbd> Attack</div>' +
@@ -1060,7 +1200,12 @@ function showMenu(){
         '<div class="key"><kbd>Q</kbd><kbd>E</kbd> Cycle weapon</div>' +
         '<div class="key"><kbd>P</kbd> Pause</div>' +
         '<div class="key"><kbd>M</kbd> Mute (top right)</div>' +
-      '</div>' +
+      '</div>';
+  overlay.innerHTML =
+    '<div class="panel">' +
+      '<h1>STICKMAN <span>COMBAT</span></h1>' +
+      '<p class="sub">Fight through endless levels. Every level the enemies get tougher &mdash; more health, better weapons, and more of them. Earn gold, buy weapons, stack upgrades, and see how deep you can go.</p>' +
+      keysHtml +
       '<div class="row"><button class="big" id="startBtn">START FIGHTING</button></div>' +
       '<p class="hint">Tip: dashing gives you brief invincibility &mdash; use it to slip through a heavy swing instead of trading hits.</p>' +
     '</div>';
@@ -1109,21 +1254,32 @@ function pauseGame(){
         '<button class="big" id="resumeBtn">RESUME</button>' +
         '<button class="ghost" id="quitBtn">Abandon Run</button>' +
       '</div>' +
+      '<p class="hint">Press P or Esc to resume.</p>' +
     '</div>';
-  document.getElementById('resumeBtn').onclick = () => {
-    overlay.classList.remove('show'); overlay.innerHTML = '';
-    state = 'playing'; last = performance.now();
-  };
+  document.getElementById('resumeBtn').onclick = resumeGame;
   document.getElementById('quitBtn').onclick = showMenu;
+}
+
+function resumeGame(){
+  if (state !== 'paused') return;
+  overlay.classList.remove('show'); overlay.innerHTML = '';
+  state = 'playing';
+  last = performance.now();
+}
+
+/* P / Esc toggles, so the same key that paused a fight also resumes it. */
+function togglePause(){
+  if (state === 'playing')      pauseGame();
+  else if (state === 'paused')  resumeGame();
 }
 
 function openShop(){
   state = 'shop';
   SFX.clear();
-  renderShop(false);
+  renderShop();
 }
 
-function renderShop(isInitial){
+function renderShop(){
   overlay.classList.add('show');
   const isBossCleared = level % 5 === 0;
 
@@ -1177,7 +1333,7 @@ function renderShop(isInitial){
 
   overlay.innerHTML =
     '<div class="panel">' +
-      '<h2>' + (isInitial ? 'Prepare for battle' : 'Level ' + level + ' cleared') + '</h2>' +
+      '<h2>Level ' + level + ' cleared</h2>' +
       '<p class="sub">' +
         'Enemies get stronger every level &mdash; more health, better weapons, and more of them. Spend wisely. ' +
         'You have <span class="gold">' + gold + 'g</span> &middot; next up: Level ' + (level + 1) +
@@ -1195,7 +1351,7 @@ function renderShop(isInitial){
       '<div class="secTitle">Upgrades</div>' +
       '<div class="cols">' + upCards + '</div>' +
       '<div class="row">' +
-        '<button class="big" id="nextBtn">' + (isInitial ? 'ENTER THE ARENA' : 'NEXT LEVEL (' + (level + 1) + ')') + '</button>' +
+        '<button class="big" id="nextBtn">NEXT LEVEL (' + (level + 1) + ')</button>' +
       '</div>' +
       '<p class="hint">Your health is fully restored at the start of every level.</p>' +
     '</div>';
@@ -1206,10 +1362,7 @@ function renderShop(isInitial){
   overlay.querySelectorAll('[data-upgrade]').forEach(btn => {
     btn.onclick = () => buyUpgrade(btn.getAttribute('data-upgrade'));
   });
-  document.getElementById('nextBtn').onclick = () => {
-    if (!isInitial) level++;
-    startLevel();
-  };
+  document.getElementById('nextBtn').onclick = () => { level++; startLevel(); };
 }
 
 function buyWeapon(key){
@@ -1217,7 +1370,7 @@ function buyWeapon(key){
   if (!w) return;
   if (player.weapons.includes(key)){
     player.wi = player.weapons.indexOf(key);
-    SFX.buy(); syncHUD(); renderShop(false); return;
+    SFX.buy(); syncHUD(); renderShop(); return;
   }
   if (gold < w.cost){ SFX.deny(); return; }
   gold -= w.cost;
@@ -1225,7 +1378,7 @@ function buyWeapon(key){
   player.wi = player.weapons.length - 1;
   SFX.buy();
   syncHUD();
-  renderShop(false);
+  renderShop();
 }
 
 function buyUpgrade(key){
@@ -1246,7 +1399,7 @@ function buyUpgrade(key){
 
   SFX.buy();
   syncHUD();
-  renderShop(false);
+  renderShop();
 }
 
 function gameOver(){
