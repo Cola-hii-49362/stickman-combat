@@ -1,8 +1,27 @@
 # Stickman Combat
 
+![Stickman Combat mid-fight at level 10 — the player closing on a Warlord and its escort of Brutes, Grunts and an Assassin](docs/screenshot-combat.png)
+
 A zero-dependency HTML5 canvas brawler in a **single file**. Open `index.html` in any browser and play — no build step, no `npm install`, no CDN, no internet connection required.
 
 Fight through endless levels. Every level the enemies get tougher: more health, better weapons, and more of them. Earn gold, buy weapons, stack upgrades, and see how deep you can go.
+
+---
+
+## Table of contents
+
+- [Play](#play)
+- [Controls](#controls)
+- [The loop](#the-loop)
+- [Weapons](#weapons)
+- [Upgrades](#upgrades)
+- [Enemies](#enemies)
+- [Difficulty scaling](#difficulty-scaling)
+- [How it works](#how-it-works)
+  - [Repository layout](#repository-layout)
+- [Development notes](#development-notes)
+  - [Known limitations](#known-limitations)
+- [License](#license)
 
 ---
 
@@ -40,6 +59,8 @@ There is no server, no bundler, no package manifest, and no asset files. Everyth
 1. **Fight.** Clear every enemy in the arena. Your health is fully restored at the start of each level, so the only real reset point is the shop.
 2. **Shop.** After each cleared level the shop opens. Spend gold on weapons or repeatable upgrades, then hit **NEXT LEVEL**.
 3. **Repeat.** Difficulty rises every level. There is no final level — the run ends when you die, and you get a summary of level reached, kills, gold, and survival time.
+
+![The between-level shop — six weapons and four repeatable upgrades, with owned and equipped states](docs/screenshot-shop.png)
 
 You start with **Fists** and **0 gold**, so level 1 must be cleared with your bare hands. That is intentional: your first purchase is a real decision.
 
@@ -167,8 +188,11 @@ A few implementation notes:
 
 ```
 .
-├── index.html     the entire game (HTML + CSS + JS, ~1,300 lines)
-├── .gitignore     excludes .workbuddy-ai/ and OS/editor noise
+├── index.html                 the entire game (HTML + CSS + JS, ~1,300 lines)
+├── docs/
+│   ├── screenshot-combat.png  gameplay screenshot used in this README
+│   └── screenshot-shop.png    shop screenshot used in this README
+├── .gitignore                 excludes .workbuddy-ai/ and OS/editor noise
 └── README.md
 ```
 
@@ -180,7 +204,7 @@ This project was built and verified with headless tooling rather than by eyeball
 
 - **Static syntax check** — the inline script is extracted and run through `node --check`.
 - **Headless logic harness** — a Node script stubs the DOM and canvas, then drives the real game loop for tens of thousands of simulated frames with a scripted bot. It asserts that levels advance, the shop opens, purchases apply, and death/restart/pause paths reset state correctly. Run against a fresh checkout this should report zero runtime errors.
-- **Rendered screenshots** — headless Chrome captures the real output for visual inspection of the menu, mid-combat, and shop screens.
+- **Rendered screenshots** — headless Chrome captures the real output for visual inspection. The two images in this README were produced that way: the source is patched into a representative mid-run state, input is driven programmatically, and the canvas is captured at 2× device scale.
 
 The harness caught four bugs that would otherwise have shipped broken: a crash on the first frame from reading a non-existent weapon field, a `NaN` damage bug that made the player immortal, enemies walking through the player so hits never landed, and a head drawn detached from the torso.
 
@@ -190,6 +214,7 @@ The harness caught four bugs that would otherwise have shipped broken: a crash o
 - **No persistence.** There are no saves; closing the tab ends the run.
 - **Fixed logical resolution.** The canvas scales to fit but does not reflow layout; on very small screens the HUD may feel cramped.
 - **Balance is intentionally asymmetric.** The Katana and Warhammer sit at the top of the price curve on purpose; cheaper weapons remain usable rather than becoming strictly obsolete.
+- **Screenshots are staged.** The images above come from patched copies of the source that start the player at a mid-run state, so they can show representative content (level 10, a Warlord, several weapon unlocks) without hours of play. The rendering itself is untouched.
 
 ---
 
