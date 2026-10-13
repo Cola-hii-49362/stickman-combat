@@ -45,6 +45,8 @@ There is no server, no bundler, no package manifest, and no asset files. Everyth
 
 ## Controls
 
+### Keyboard and mouse
+
 | Key | Action |
 |---|---|
 | `A` / `D` or `←` / `→` | Move left / right |
@@ -53,8 +55,14 @@ There is no server, no bundler, no package manifest, and no asset files. Everyth
 | `K` or `Shift` | Dash — grants brief invincibility frames |
 | `1` – `6` | Switch to an owned weapon by slot |
 | `Q` / `E` | Cycle backwards / forwards through owned weapons |
-| `P` or `Esc` | Pause |
+| `P` or `Esc` | Pause — press again to resume |
 | `M` or click the HUD chip | Toggle sound |
+
+### Touch
+
+On a phone or tablet an on-screen pad appears automatically while you are fighting: **◀** **▶** to move on the left, and **DASH**, **JUMP** and **ATTACK** on the right. Holding **ATTACK** keeps swinging at your weapon's natural rate rather than making you tap repeatedly. The pad is hidden on desktop and on the menu, shop and pause screens, so it never covers anything you need to read.
+
+The game also honours the OS "reduce motion" setting — screen shake and the low-health pulse are disabled when it is on.
 
 **The dash is the core skill.** It gives you 0.22s of invincibility on a 0.85s cooldown. Trading hits loses; dashing *through* a heavy swing and punishing the recovery wins. Enemies telegraph their attacks with a visible arc, so a read-and-react player can clear levels a masher cannot.
 
